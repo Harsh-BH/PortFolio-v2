@@ -4,15 +4,14 @@ import { Link } from "@nextui-org/link";
 import InteractiveGraph from "../components/InteractiveGraph";
 import '../components/styles/TypingAnimation.css';
 import { Avatar } from "@nextui-org/react";
-import Typed from 'react-typed';
 
 import Project from "@/components/Projects";
 
 export default function Home() {
-  const [hoveredPoint, setHoveredPoint] = useState(null);
-  const [fixedPoint, setFixedPoint] = useState(null);
-  const [activeIndex, setActiveIndex] = useState(null);
-
+  const [hoveredPoint, setHoveredPoint] = useState<number | null>(null);
+  const [fixedPoint, setFixedPoint] = useState<number | null>(null);
+  const [activeIndex, setActiveIndex] = useState<number | null>(null); // Change here
+  
   const sayHello = () => {
     console.log("Hello, World!");
   };
@@ -43,10 +42,10 @@ export default function Home() {
         ? codeSnippets[fixedPoint]
         : initialCode;
 
-  const toggleDropdown = (index) => {
-    setActiveIndex((prevIndex) => (prevIndex === index ? null : index));
-  };
-
+        const toggleDropdown = (index: number) => {
+          setActiveIndex((prevIndex) => (prevIndex === index ? null : index));
+        };
+        
   return (
     <section
       className="flex flex-col items-start justify-start pt-10
@@ -84,7 +83,7 @@ export default function Home() {
 
         <div className="flex-1 mt-8 md:mt-0">
           <p className="text-[44px] font-extrabold leading-tight w-full max-w-[900px] text-left">
-            I'm a software designer with a passion for creating interfaces with
+            I&apos;m a software designer with a passion for creating interfaces with
             a focus on simplicity and clarity.
           </p>
           <p className="mt-11 text-[18px] font-normal text-gray-600 leading-relaxed">
@@ -157,7 +156,7 @@ export default function Home() {
             </p>
           </div>
         </div>
-      </div>
+      </div>  
 
       {/* My Way of Getting Things Done Section */}
       <div className="mt-32 w-full py-20 flex">
@@ -196,6 +195,8 @@ export default function Home() {
               ].map((item, index) => (
                 <li key={index} className="border-t border-gray-700">
                   <div
+                    role="button" // Add this role for accessibility
+                    tabIndex={0}   // Add tabIndex for keyboard navigation
                     className="flex justify-between items-center py-4 cursor-pointer"
                     onClick={() => toggleDropdown(index)}
                   >

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { Line } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -7,13 +7,21 @@ import {
   LinearScale,
   Title,
   Tooltip,
-  CategoryScale
+  CategoryScale,
+  ChartOptions,
 } from 'chart.js';
 
-// Register the required components, including Tooltip for tooltips
+// Register the required components
 ChartJS.register(LineElement, PointElement, LinearScale, Title, Tooltip, CategoryScale);
 
-const InteractiveGraph = ({ onPointHover, onPointClick }) => {
+interface InteractiveGraphProps {
+  onPointHover: (index: number | null) => void; // Callback when a point is hovered
+  onPointClick: (index: number) => void; // Callback when a point is clicked
+}
+
+const InteractiveGraph: React.FC<InteractiveGraphProps> = ({ onPointHover, onPointClick }) => {
+  const chartRef = useRef<any>(null); // Create a ref to store the chart instance
+
   const data = {
     labels: ['Point 1', 'Point 2', 'Point 3', 'Point 4'],
     datasets: [
@@ -31,7 +39,7 @@ const InteractiveGraph = ({ onPointHover, onPointClick }) => {
     ],
   };
 
-  const options = {
+  const options: ChartOptions<'line'> = {
     responsive: true,
     scales: {
       x: {
@@ -41,6 +49,7 @@ const InteractiveGraph = ({ onPointHover, onPointClick }) => {
         },
       },
       y: {
+        beginAtZero: true, // Ensure y-axis starts at zero
         grid: {
           color: '#444444',
         },
@@ -59,23 +68,48 @@ const InteractiveGraph = ({ onPointHover, onPointClick }) => {
         borderWidth: 1,
       },
     },
-    onHover: (event, chartElement) => {
-      if (chartElement.length) {
-        const index = chartElement[0].index;
-        onPointHover(index);
-      } else {
-        onPointHover(null);
-      }
-    },
-    onClick: (event, chartElement) => {
-      if (chartElement.length) {
-        const index = chartElement[0].index;
-        onPointClick(index);
-      }
-    },
   };
 
-  return <Line data={data} options={options} />;
+  const handleHover = (event: React.MouseEvent) => {
+    const chartInstance = chartRef.current?.chartInstance; // Safely access the chart instance
+    if (!chartInstance) return; // If chart instance is not available, exit early
+
+    const chartElement = chartInstance.getElementsAtEventForMode(event.nativeEvent, 'nearest', { intersect: true }, false);
+    if (chartElement.length) {
+      const index = chartElement[0].index;
+      onPointHover(index);
+    } else {
+      onPointHover(null);
+    }
+  };
+
+  const handleClick = (event: React.MouseEvent) => {
+    const chartInstance = chartRef.current?.chartInstance; // Safely access the chart instance
+    if (!chartInstance) return; // If chart instance is not available, exit early
+
+    const chartElement = chartInstance.getElementsAtEventForMode(event.nativeEvent, 'nearest', { intersect: true }, false);
+    if (chartElement.length) {
+      const index = chartElement[0].index;
+      onPointClick(index);
+    }
+  };
+
+  return (
+    <div
+      role="button" // Set role to button
+      tabIndex={0} // Make the div focusable
+      onMouseMove={handleHover}
+      onClick={handleClick}
+      onKeyDown={(e) => { // Handle keyboard interactions
+        if (e.key === 'Enter' || e.key === ' ') {
+          handleClick(e as any); // Cast event to any for compatibility
+        }
+      }}
+      style={{ outline: 'none' }} // Optional: To prevent the outline when focusing
+    >
+      <Line ref={chartRef} data={data} options={options} />
+    </div>
+  );
 };
 
 export default InteractiveGraph;
